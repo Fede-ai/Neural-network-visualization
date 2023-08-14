@@ -1,9 +1,10 @@
-#include "game.h"
+#include <SFML/Graphics.hpp>
 
 int main()
 {
-	sf::RenderWindow window;
-	Game game(window);
+	sf::ContextSettings settings;
+	settings.antialiasingLevel = 8;
+	sf::RenderWindow window(sf::VideoMode(), "neural network visualization", sf::Style::Default, settings);
 
 	while (window.isOpen())
 	{
@@ -23,7 +24,7 @@ int main()
 			}
 		}
 
-		game.frame();
+		
 	}
 
 	return 0;
