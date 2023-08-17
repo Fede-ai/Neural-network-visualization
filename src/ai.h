@@ -6,7 +6,7 @@
 class Ai
 {
 public:
-	Ai(std::vector<int> size);
+	Ai(std::vector<int> inSize);
 	//takes in input the input layer and returns the output layer;
 	std::vector<double> calculateOutput(std::vector<double> inputs);
 	void setRandomValues();
@@ -20,4 +20,6 @@ public:
 
 private:
 	std::vector<Layer> layers;
+	//including the input layer
+	std::vector<int> size;
 };

@@ -1,10 +1,11 @@
 #include "ai.h"
 
-Ai::Ai(std::vector<int> size)
+Ai::Ai(std::vector<int> inSize)
 {
-	for (int i = 1; i < size.size(); i++)
+	size = inSize;
+	for (int i = 1; i < inSize.size(); i++)
 	{
-		layers.push_back(Layer(size[i - 1], size[i]));
+		layers.push_back(Layer(inSize[i - 1], inSize[i]));
 	}
 }
 
