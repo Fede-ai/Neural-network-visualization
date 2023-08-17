@@ -9,16 +9,30 @@ public:
 
 private:    
     void update();
-    void draw();
+    void drawNn();
+    void drawImage();
     void drawSliders();
 
-    void setView();
+    void computeImage();    
     void initAi();
+    void setView();
 
     Ai* ai = nullptr;
     bool pressed = false;
+    bool isNnFocused = true;
+    bool canChangeFocus = false;
+    bool canCenter = false;
     sf::RenderWindow window;
-	sf::RenderTexture nn;
+
+	sf::RenderTexture nnSpace;
+    sf::RectangleShape nnCanvas;	
+    sf::RenderTexture imageSpace;
+    sf::RectangleShape imageCanvas;	
+
+    sf::Texture textureImage;
+    sf::Image imageImage;
+    sf::Sprite image;
+
     sf::Vector2i lastMousePos;
 	bool isMooving = false;
 	sf::Font font;
@@ -30,8 +44,7 @@ private:
 	sf::RectangleShape sliderBg;
     sf::RectangleShape slider;
 	float sliderScroll = 0;
-    int nnHeight = maxSize * 100 + (maxSize + 1) * 80;
+    int nnHeight;
 	std::vector<double> inputs;
     int editingValue = -1;
-    bool editedValue = false;
 };

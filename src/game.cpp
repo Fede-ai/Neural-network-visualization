@@ -12,15 +12,18 @@ void Game::play()
 	}
 	nnHeight = maxSize * 100 + (maxSize + 1) * 80;
 
-	neuron.setRadius(50);
-	neuron.setOrigin(50, 50);
-	neuron.setOutlineThickness(5);
-	neuron.setOutlineColor(sf::Color::Black);
+	imageImage.create(200, 135);
+	computeImage();
 
 	inputs.clear();
 	inputs.push_back(30);
 	inputs.push_back(-30);
 	ai->calculateOutput(inputs);
+
+	neuron.setRadius(50);
+	neuron.setOrigin(50, 50);
+	neuron.setOutlineThickness(5);
+	neuron.setOutlineColor(sf::Color::Black);
 
     sliderBg.setSize(sf::Vector2f(260, 50));
     sliderBg.setFillColor(sf::Color::White);
@@ -40,9 +43,12 @@ void Game::play()
 
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 8;
-	nn.setSmooth(true);
-	nn.create(1600, 1080, settings);
+	nnSpace.setSmooth(true);
+	nnSpace.create(1600, 1080, settings);
 	setView();
+
+	imageSpace.create(400, 270);
+	imageSpace.setView(sf::View(sf::Vector2f(100, 67.5), sf::Vector2f(200, 135)));
 
 	window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2/3, sf::VideoMode::getDesktopMode().width * 3/8), "neural network visualization", sf::Style::Default, settings);
     window.setFramerateLimit(60);
@@ -69,12 +75,25 @@ void Game::play()
                 float scroll = event.mouseWheelScroll.delta;
                 if (window.mapPixelToCoords(sf::Mouse::getPosition(window)).x > 320)
 		        {
-		    	    sf::View view(nn.getView());
-		    	    if (scroll > 0)
-		    	    	view.zoom(1 - 0.1 * scroll);
-		    	    else
-		    		view.zoom(1 / (1 + 0.1*scroll));
-		    	    nn.setView(view);			
+					if (isNnFocused)
+					{
+						sf::View view(nnSpace.getView());
+						if (scroll > 0)
+							view.zoom(1 - 0.1 * scroll);
+						else
+							view.zoom(1 / (1 + 0.1*scroll));
+						nnSpace.setView(view);							
+					}
+					else
+					{
+						sf::View view(imageSpace.getView());
+						if (scroll > 0)
+							view.zoom(1 - 0.1 * scroll);
+						else
+							view.zoom(1 / (1 + 0.1*scroll));
+						imageSpace.setView(view);						
+					}
+		
 		        }
 		        else
 		        {
@@ -120,7 +139,17 @@ void Game::play()
 		window.clear(sf::Color(150, 150, 150));
 
         update();
-        draw();
+		if (isNnFocused)
+		{
+        	drawNn();
+			drawImage();	
+		}
+		else
+		{
+			drawImage();
+			drawNn();
+		}
+
         drawSliders();
 
         window.display();
@@ -146,11 +175,22 @@ void Game::update()
 
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isMooving)
     {
-        sf::View newView(nn.getView());
-		sf::Vector2f diff = sf::Vector2f(lastMousePos - sf::Mouse::getPosition());
-		diff = sf::Vector2f(diff.x *nn.getView().getSize().x/window.getSize().x*1.2, diff.y *nn.getView().getSize().y/window.getSize().y);
-        newView.move(diff);
-        nn.setView(newView);
+		if (isNnFocused)
+		{
+        	sf::View newView(nnSpace.getView());
+			sf::Vector2f diff = sf::Vector2f(lastMousePos - sf::Mouse::getPosition());
+			diff = sf::Vector2f(diff.x *nnSpace.getView().getSize().x/window.getSize().x*1.2, diff.y *nnSpace.getView().getSize().y/window.getSize().y);
+        	newView.move(diff);
+        	nnSpace.setView(newView);			
+		}
+		else
+		{
+			sf::View newView(imageSpace.getView());
+			sf::Vector2f diff = sf::Vector2f(lastMousePos - sf::Mouse::getPosition());
+			diff = sf::Vector2f(diff.x *imageSpace.getView().getSize().x/window.getSize().x*1.2, diff.y *imageSpace.getView().getSize().y/window.getSize().y);
+        	newView.move(diff);
+        	imageSpace.setView(newView);
+		}
     }
 	else
 	{
@@ -193,26 +233,51 @@ void Game::update()
 	        	}
 	        }
         }
+		computeImage();
         ai->calculateOutput(inputs);
     }
     else if (editingValue != -1)
     {
         editingValue = -1;
-        editedValue = true;
     } 
 
-    if (editedValue)
-    {
-        ai->calculateOutput(inputs);
-        editedValue = false;
-    }
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+	{
+		if (canCenter)
+		{
+			if (isNnFocused)
+				setView();
+			else
+				imageSpace.setView(sf::View(sf::Vector2f(100, 67.5), sf::Vector2f(200, 135)));
 
+			canCenter = false;
+		}
+	}
+	else
+	{
+		canCenter = true;
+	}
+	//change focus
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+	{
+		if (canChangeFocus)
+		{
+			isNnFocused = !isNnFocused;
+			isMooving = false;
+			canChangeFocus = false;
+		}
+	}
+	else
+	{
+		canChangeFocus = true;
+	}
+	
 	lastMousePos = sf::Mouse::getPosition();
 }
 
-void Game::draw()
+void Game::drawNn()
 {
-    nn.clear(sf::Color(200, 200, 200));
+    nnSpace.clear(sf::Color(200, 200, 200));
 	
 	//draw weights
 	for (int layer = 1; layer < aiSize.size(); layer++)
@@ -225,7 +290,7 @@ void Game::draw()
 			for (int neurBefore = 0; neurBefore < aiSize[layer - 1]; neurBefore++)
 			{
 				weight[0].position = sf::Vector2f(120 + 300 * (layer - 1), (spaceBefore + 100) * neurBefore + spaceBefore + 50);
-				nn.draw(weight);
+				nnSpace.draw(weight);
 			}
 		}
 	}
@@ -242,70 +307,111 @@ void Game::draw()
 				neuron.setFillColor(sf::Color::White);
             
 			neuron.setPosition(120 + 300 * layer, (space + 100) * neur + space + 50);
-			nn.draw(neuron);
+			nnSpace.draw(neuron);
 		}
 	}
 
-	//draw text
-	for (int layer = 1; layer < aiSize.size(); layer++)
+	//draw all text
+	if (isNnFocused)
 	{
-		float space = (nnHeight - 100 * aiSize[layer]) / (aiSize[layer] + 1);
-		float spaceBefore = (nnHeight - 100 * aiSize[layer - 1]) / (aiSize[layer - 1] + 1);
-		for (int neur = 0; neur < aiSize[layer]; neur++)
+		//draw text
+		for (int layer = 1; layer < aiSize.size(); layer++)
 		{
-			for (int neurBefore = 0; neurBefore < aiSize[layer - 1]; neurBefore++)
+			float space = (nnHeight - 100 * aiSize[layer]) / (aiSize[layer] + 1);
+			float spaceBefore = (nnHeight - 100 * aiSize[layer - 1]) / (aiSize[layer - 1] + 1);
+			for (int neur = 0; neur < aiSize[layer]; neur++)
 			{
-				//draw weight text
-				float xDiff = 300;
-				float yDiff = (space + 100) * neur + space + 50 - ((spaceBefore + 100) * neurBefore + spaceBefore + 50);
-				std::string weight(std::to_string((round(ai->getWeight(layer - 1, neur, neurBefore)*1000))/1000)); 
-				weight.erase(weight.end()-1);
-                weight.erase(weight.end()-2);
-				text.setString(weight);
+				for (int neurBefore = 0; neurBefore < aiSize[layer - 1]; neurBefore++)
+				{
+					//draw weight text
+					float xDiff = 300;
+					float yDiff = (space + 100) * neur + space + 50 - ((spaceBefore + 100) * neurBefore + spaceBefore + 50);
+					std::string weight(std::to_string((round(ai->getWeight(layer - 1, neur, neurBefore)*1000))/1000)); 
+					weight.erase(weight.end()-1);
+    	            weight.erase(weight.end()-2);
+					text.setString(weight);
+					text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
+					text.setRotation(atan(yDiff/xDiff) * 180 / 3.1415);
+					text.setPosition(120 + 300 * layer - 150, ((space + 100) * neur + space + 50 + (spaceBefore + 100) * neurBefore + spaceBefore + 50) /2 - 5);
+					nnSpace.draw(text);
+					text.setRotation(0);
+				}
+				//draw neuron text
+				text.setString(std::to_string(ai->getNeuron(layer - 1, neur)));
 				text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
-				text.setRotation(atan(yDiff/xDiff) * 180 / 3.1415);
-				text.setPosition(120 + 300 * layer - 150, ((space + 100) * neur + space + 50 + (spaceBefore + 100) * neurBefore + spaceBefore + 50) /2 - 5);
-				nn.draw(text);
-				text.setRotation(0);
+				text.setPosition(120 + 300 * layer, (space + 100) * neur + space + 50 - 5);
+				nnSpace.draw(text);
+
+				//draw bias text
+				std::string bias(std::to_string((round(ai->getBias(layer - 1, neur)*1000))/1000)); 
+				bias.erase(bias.end()-1);
+    	        bias.erase(bias.end()-2);
+				text.setString("bias: " + bias);
+				text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
+				text.setPosition(120 + 300 * layer, (space + 100) * neur + space - 15);
+				nnSpace.draw(text);
 			}
-			//draw neuron text
-			text.setString(std::to_string(ai->getNeuron(layer - 1, neur)));
-			text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
-			text.setPosition(120 + 300 * layer, (space + 100) * neur + space + 50 - 5);
-			nn.draw(text);
-
-			//draw bias text
-			std::string bias(std::to_string((round(ai->getBias(layer - 1, neur)*1000))/1000)); 
-			bias.erase(bias.end()-1);
-            bias.erase(bias.end()-2);
-			text.setString("bias: " + bias);
-			text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
-			text.setPosition(120 + 300 * layer, (space + 100) * neur + space - 15);
-			nn.draw(text);
 		}
-	}
 
-	//draw input layer neuron text
-	for (int input = 0; input < aiSize[0]; input++)
-	{
-		float space = (nnHeight - 100 * aiSize[0]) / (aiSize[0] + 1);
-        std::string value(std::to_string(inputs[input]));
-        value.erase(value.end()-1);
-        value.erase(value.end()-2);
-        value.erase(value.end()-3);
-		text.setString(value);
-		text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
-		text.setPosition(120, (space + 100) * input + space + 50 - 5);
-		nn.draw(text);
+		//draw input layer neuron text
+		for (int input = 0; input < aiSize[0]; input++)	
+		{
+			float space = (nnHeight - 100 * aiSize[0]) / (aiSize[0] + 1);
+    	    std::string value(std::to_string(inputs[input]));
+    	    value.erase(value.end()-1);
+    	    value.erase(value.end()-2);
+    	    value.erase(value.end()-3);
+			text.setString(value);
+			text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
+			text.setPosition(120, (space + 100) * input + space + 50 - 5);
+			nnSpace.draw(text);
+		}
 	}
 	
-	nn.display();
-	sf::RectangleShape nnImage;
-	nnImage.setSize(sf::Vector2f(1600, 1080));
-	nnImage.setPosition(sf::Vector2f(320, 0));
-	nnImage.setTexture(&nn.getTexture());
+	nnSpace.display();
+	nnCanvas.setTexture(&nnSpace.getTexture());
+	if (isNnFocused)
+	{
+		nnCanvas.setSize(sf::Vector2f(1600, 1080));
+		nnCanvas.setPosition(sf::Vector2f(320, 0));
+		nnCanvas.setOutlineThickness(0);
+	}
+	else
+	{
+		nnCanvas.setSize(sf::Vector2f(400, 270));
+		nnCanvas.setPosition(sf::Vector2f(1520, 810));
+		nnCanvas.setOutlineColor(sf::Color::Black);
+		nnCanvas.setOutlineThickness(10);
+	}
 
-	window.draw(nnImage);
+	window.draw(nnCanvas);
+}
+
+void Game::drawImage()
+{
+	imageSpace.clear(sf::Color(200, 200, 200));
+
+	textureImage.loadFromImage(imageImage);
+	image.setTexture(textureImage);
+	imageSpace.draw(image);
+
+	imageSpace.display();
+	imageCanvas.setTexture(&imageSpace.getTexture());
+	if (!isNnFocused)
+	{
+		imageCanvas.setSize(sf::Vector2f(1600, 1080));
+		imageCanvas.setPosition(sf::Vector2f(320, 0));
+		imageCanvas.setOutlineThickness(0);
+	}
+	else
+	{
+		imageCanvas.setSize(sf::Vector2f(400, 270));
+		imageCanvas.setPosition(sf::Vector2f(1520, 810));
+		imageCanvas.setOutlineColor(sf::Color::Black);
+		imageCanvas.setOutlineThickness(10);
+	}
+
+	window.draw(imageCanvas);
 }
 
 void Game::drawSliders()
@@ -386,6 +492,33 @@ void Game::drawSliders()
 	text.setScale(0.25, 0.25);
 }
 
+void Game::computeImage()
+{
+	for (int y = 0; y < imageImage.getSize().y; y++)
+	{
+		for (int x = 0; x < imageImage.getSize().x; x++)
+		{
+			std::vector<double> imageInputs;
+			imageInputs.push_back(x - imageImage.getSize().x/2.f);
+			imageInputs.push_back(y - imageImage.getSize().y/2.f);
+			std::vector<double> output = ai->calculateOutput(imageInputs);
+			if (aiSize[aiSize.size() - 1] == 2)
+			{
+				if (output[0] > output[1])
+					imageImage.setPixel(x, y, sf::Color::Black);
+				if (output[0] == output[1])
+					imageImage.setPixel(x, y, sf::Color(130, 130, 130));
+				if (output[0] < output[1])
+					imageImage.setPixel(x, y, sf::Color::White);	
+			}
+			else
+			{
+				imageImage.setPixel(x, y, sf::Color(output[0]*255, output[1]*255, output[2]*255));
+			}
+		}
+	}
+}
+
 void Game::initAi()
 {
     aiSize.clear();
@@ -455,14 +588,14 @@ void Game::initAi()
 void Game::setView()
 {
 	float width = 300 * (aiSize.size() - 1) + 240;
-	float prop = 1600 / 1080.f;
+	float prop = 1600 / 1080.f; // = 40 / 27
 
 	if (nnHeight * prop > width)
 	{
-		nn.setView(sf::View(sf::Vector2f(width/2, nnHeight/2.f), sf::Vector2f(nnHeight * prop, nnHeight)));
+		nnSpace.setView(sf::View(sf::Vector2f(width/2, nnHeight/2.f), sf::Vector2f(nnHeight * prop, nnHeight)));
 	}
 	else
 	{
-		nn.setView(sf::View(sf::Vector2f(width/2, nnHeight/2.f), sf::Vector2f(width, width / prop)));
+		nnSpace.setView(sf::View(sf::Vector2f(width/2, nnHeight/2.f), sf::Vector2f(width, width / prop)));
 	}
 }

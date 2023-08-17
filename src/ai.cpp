@@ -1,5 +1,4 @@
 #include "ai.h"
-#include <iostream>
 
 Ai::Ai(std::vector<int> size)
 {
@@ -9,7 +8,7 @@ Ai::Ai(std::vector<int> size)
 	}
 }
 
-void Ai::calculateOutput(std::vector<double> inputs)
+std::vector<double> Ai::calculateOutput(std::vector<double> inputs)
 {
 	std::vector<double> computedLayer = layers[0].calculateLayer(inputs);
 
@@ -17,6 +16,8 @@ void Ai::calculateOutput(std::vector<double> inputs)
 	{
 		computedLayer = layers[layer].calculateLayer(computedLayer);
 	}
+
+	return computedLayer;
 }
 
 void Ai::setRandomValues()
@@ -27,10 +28,6 @@ void Ai::setRandomValues()
 	}
 }
 
-double Ai::getOutput(int n) const
-{
-	return layers[layers.size() - 1].getNeuron(n);
-}
 double Ai::getNeuron(int layer, int neuron) const
 {
 	return layers[layer].getNeuron(neuron);

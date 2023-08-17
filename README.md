@@ -10,4 +10,6 @@ You can decide the size of the neural network at the start of the program (the p
 You can move around using the mouse wheel to zoom and the mouse cursor to move up, down left or right. 
 By pressing 'c' you will automatically place the neural network/image at the center of the screen. 
 
-release, how to read weight number, console commands
+This project is still far from completeness, some of the feature the are here described ore not implemented yet, while other that i havent talked about are
+
+release, how to read weight number, console commands, actual center, activation function
