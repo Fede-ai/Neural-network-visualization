@@ -20,6 +20,11 @@ void Game::play()
 	inputs.push_back(-30);
 	ai->calculateOutput(inputs);
 
+	origin.setFillColor(sf::Color::Green);
+	origin.setRadius(2);
+	origin.setOrigin(2, 2);
+	origin.setPosition(100, 67.5);
+
 	neuron.setRadius(50);
 	neuron.setOrigin(50, 50);
 	neuron.setOutlineThickness(5);
@@ -204,7 +209,7 @@ void Game::update()
         {
             inputs[editingValue] = std::min(std::max((mousePos.x - 160) * 50 / 130.f, -50.f), 50.f);
         }
-        else
+        else if (mode != "bp")
         {
             int potentialValue = 2;
             //check if the edited value is a weight
@@ -232,8 +237,9 @@ void Game::update()
                     potentialValue++; 
 	        	}
 	        }
+			computeImage();
         }
-		computeImage();
+		
         ai->calculateOutput(inputs);
     }
     else if (editingValue != -1)
@@ -241,6 +247,7 @@ void Game::update()
         editingValue = -1;
     } 
 
+	//center
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
 	{
 		if (canCenter)
@@ -257,6 +264,7 @@ void Game::update()
 	{
 		canCenter = true;
 	}
+	
 	//change focus
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 	{
@@ -394,6 +402,7 @@ void Game::drawImage()
 	textureImage.loadFromImage(imageImage);
 	image.setTexture(textureImage);
 	imageSpace.draw(image);
+	imageSpace.draw(origin);
 
 	imageSpace.display();
 	imageCanvas.setTexture(&imageSpace.getTexture());
@@ -410,6 +419,7 @@ void Game::drawImage()
 		imageCanvas.setOutlineColor(sf::Color::Black);
 		imageCanvas.setOutlineThickness(10);
 	}
+
 
 	window.draw(imageCanvas);
 }
@@ -499,8 +509,8 @@ void Game::computeImage()
 		for (int x = 0; x < imageImage.getSize().x; x++)
 		{
 			std::vector<double> imageInputs;
-			imageInputs.push_back(x - imageImage.getSize().x/2.f);
-			imageInputs.push_back(y - imageImage.getSize().y/2.f);
+			imageInputs.push_back(x/40.f - 5);
+			imageInputs.push_back(y/27.f - 5);
 			std::vector<double> output = ai->calculateOutput(imageInputs);
 			if (aiSize[aiSize.size() - 1] == 2)
 			{
@@ -555,16 +565,18 @@ void Game::initAi()
         }
         std::cout << "_.\n"; 
 
-        std::cout << "do you want to create an RBG image (\'rgb\') or a black and white one (\'bw\')? ";
+        std::cout << "do you want to create an RBG image (\'rgb\'), a black and white one (\'bw\') or\n";
+		std::cout << "a black and white image that learns through backpropagation (\'bp\')? ";
         std::cin >> cmd;
 
-        if (cmd != "rgb" && cmd != "bw")
+        if (cmd != "rgb" && cmd != "bw" && cmd != "bp")
         {
             std::cout << "\n";
             //system("CLS");
         }
-    } while (cmd != "rgb" && cmd != "bw");
+    } while (cmd != "rgb" && cmd != "bw" && cmd != "bp");
 
+	mode = cmd;
     std::cout << "final network's size: ";
     for (int i = 0; i < aiSize.size(); i++)
     {

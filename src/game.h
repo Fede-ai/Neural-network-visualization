@@ -34,6 +34,7 @@ private:
     sf::Sprite image;
 
     sf::Vector2i lastMousePos;
+    sf::CircleShape origin;
 	bool isMooving = false;
 	sf::Font font;
 	sf::Text text;
@@ -47,4 +48,5 @@ private:
     int nnHeight;
 	std::vector<double> inputs;
     int editingValue = -1;
+    std::string mode;
 };
