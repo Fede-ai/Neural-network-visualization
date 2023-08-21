@@ -208,8 +208,9 @@ void Game::update()
         if (editingValue <= 1)
         {
             inputs[editingValue] = std::min(std::max((mousePos.x - 160) * 50 / 130.f, -50.f), 50.f);
+			ai->calculateOutput(inputs);
         }
-        else if (mode != "bp")
+        else
         {
             int potentialValue = 2;
             //check if the edited value is a weight
@@ -238,9 +239,8 @@ void Game::update()
 	        	}
 	        }
 			computeImage();
+			ai->calculateOutput(inputs);
         }
-		
-        ai->calculateOutput(inputs);
     }
     else if (editingValue != -1)
     {
@@ -420,7 +420,6 @@ void Game::drawImage()
 		imageCanvas.setOutlineThickness(10);
 	}
 
-
 	window.draw(imageCanvas);
 }
 
@@ -565,18 +564,16 @@ void Game::initAi()
         }
         std::cout << "_.\n"; 
 
-        std::cout << "do you want to create an RBG image (\'rgb\'), a black and white one (\'bw\') or\n";
-		std::cout << "a black and white image that learns through backpropagation (\'bp\')? ";
+        std::cout << "do you want to create an RBG image (\'rgb\') or a black and white one (\'bw\')? ";
         std::cin >> cmd;
 
-        if (cmd != "rgb" && cmd != "bw" && cmd != "bp")
+        if (cmd != "rgb" && cmd != "bw")
         {
             std::cout << "\n";
             //system("CLS");
         }
-    } while (cmd != "rgb" && cmd != "bw" && cmd != "bp");
+    } while (cmd != "rgb" && cmd != "bw");
 
-	mode = cmd;
     std::cout << "final network's size: ";
     for (int i = 0; i < aiSize.size(); i++)
     {

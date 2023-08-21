@@ -48,5 +48,4 @@ private:
     int nnHeight;
 	std::vector<double> inputs;
     int editingValue = -1;
-    std::string mode;
 };
