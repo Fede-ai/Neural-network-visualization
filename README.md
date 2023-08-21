@@ -24,4 +24,4 @@ In the black and white mode: if the first output is higher than the second the p
 You can use the mouse wheel to zoom and the mouse cursor to move up, down left or right. 
 By pressing 'C' you will automatically place the neural network/image at the center of the screen. 
 
-<!-- release, how to read weight number, console commands -->
+<!-- release, console commands -->
