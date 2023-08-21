@@ -508,8 +508,8 @@ void Game::computeImage()
 		for (int x = 0; x < imageImage.getSize().x; x++)
 		{
 			std::vector<double> imageInputs;
-			imageInputs.push_back(x/40.f - 5);
-			imageInputs.push_back(y/27.f - 5);
+			imageInputs.push_back(x/20.f - 5);
+			imageInputs.push_back(y/13.5 - 5);
 			std::vector<double> output = ai->calculateOutput(imageInputs);
 			if (aiSize[aiSize.size() - 1] == 2)
 			{
