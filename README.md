@@ -21,7 +21,8 @@ You can decide the size of the neural network at the start of the program (the p
 In the black and white mode: if the first output is higher than the second the pixel is set to white, else, it is set to black. In the colored mode: each output is multiplied by 255; the values obtained represent the red, green and blue values of the pixel.
 
 ### How to move around
-You can use the mouse wheel to zoom and the mouse cursor to move up, down left or right. 
+You can use the mouse wheel to zoom and you can left click and move the cursor to move up, down, left and right. 
 By pressing 'C' you will automatically place the neural network/image at the center of the screen. 
+Like most applications, pressing 'alt' and 'enter' together will toggle fullscreen.
 
 <!-- release, console commands -->
