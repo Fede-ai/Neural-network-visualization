@@ -55,7 +55,7 @@ void Game::play()
 	imageSpace.create(400, 270);
 	imageSpace.setView(sf::View(sf::Vector2f(100, 67.5), sf::Vector2f(200, 135)));
 
-	window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2/3, sf::VideoMode::getDesktopMode().width * 3/8), "neural network visualization", sf::Style::Default, settings);
+	window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2/3, sf::VideoMode::getDesktopMode().width * 3/8), "Neural network", sf::Style::Default, settings);
     window.setFramerateLimit(60);
     window.setView(sf::View(sf::Vector2f(1920/2, 1080/2), sf::Vector2f(1920, 1080)));
     window.requestFocus();
@@ -174,14 +174,14 @@ void Game::update()
 			if (isFullscreen)
 			{
 				sf::View view(window.getView());
-				window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2 / 3, sf::VideoMode::getDesktopMode().width * 3 / 8), "simple", sf::Style::Default, settings);
+				window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2 / 3, sf::VideoMode::getDesktopMode().width * 3 / 8), "Neural network", sf::Style::Default, settings);
 				window.setFramerateLimit(60);
 				window.setView(view);
 			}
 			else
 			{
 				sf::View view(window.getView());
-				window.create(sf::VideoMode(), "simple", sf::Style::Fullscreen, settings);
+				window.create(sf::VideoMode(), "Neural network", sf::Style::Fullscreen, settings);
 				window.setFramerateLimit(60);
 				window.setView(view);
 			}
@@ -268,7 +268,10 @@ void Game::update()
 
 void Game::drawNn()
 {
-    nnSpace.clear(sf::Color(200, 200, 200));
+	if (isNnFocused)
+		nnSpace.clear(sf::Color(200, 200, 200));
+	else
+		nnSpace.clear(sf::Color(150, 150, 150));
 	
 	//draw weights
 	for (int layer = 1; layer < aiSize.size(); layer++)
@@ -365,7 +368,6 @@ void Game::drawNn()
 	{
 		nnCanvas.setSize(sf::Vector2f(1600, 1080));
 		nnCanvas.setPosition(sf::Vector2f(320, 0));
-		nnCanvas.setOutlineThickness(0);
 		window.draw(nnCanvas);
 	}
 	else if (drawViewport)
@@ -373,14 +375,16 @@ void Game::drawNn()
 		nnCanvas.setSize(sf::Vector2f(400, 270));
 		nnCanvas.setPosition(sf::Vector2f(1520, 810));
 		nnCanvas.setOutlineColor(sf::Color::Black);
-		nnCanvas.setOutlineThickness(6);
 		window.draw(nnCanvas);
 	}
 }
 
 void Game::drawImage()
 {
-	imageSpace.clear(sf::Color(200, 200, 200));
+	if (!isNnFocused)
+		imageSpace.clear(sf::Color(200, 200, 200));
+	else
+		imageSpace.clear(sf::Color(150, 150, 150));
 
 	textureImage.loadFromImage(imageImage);
 	image.setTexture(textureImage);
@@ -393,7 +397,6 @@ void Game::drawImage()
 	{
 		imageCanvas.setSize(sf::Vector2f(1600, 1080));
 		imageCanvas.setPosition(sf::Vector2f(320, 0));
-		imageCanvas.setOutlineThickness(0);
 		window.draw(imageCanvas);
 	}
 	else if (drawViewport)
@@ -401,7 +404,6 @@ void Game::drawImage()
 		imageCanvas.setSize(sf::Vector2f(400, 270));
 		imageCanvas.setPosition(sf::Vector2f(1520, 810));
 		imageCanvas.setOutlineColor(sf::Color::Black);
-		imageCanvas.setOutlineThickness(6);
 		window.draw(imageCanvas);
 	}
 }
