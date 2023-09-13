@@ -63,11 +63,11 @@ void Layer::setRandomLayerValues()
 {
 	for (int thisNeuron = 0; thisNeuron < neurons.size(); thisNeuron++)
 	{
-		biases[thisNeuron] = random(0, 10000) / 1000.f - 5;
+		biases[thisNeuron] = random(0, 6000) / 1000.f - 3;
 
 		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
 		{
-			weights[thisNeuron][neuronBefore] = random(0, 2000) / 1000.f - 1;
+			weights[thisNeuron][neuronBefore] = random(0, 4000) / 1000.f - 2;
 		}
 	}
 }

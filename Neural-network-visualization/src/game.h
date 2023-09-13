@@ -20,8 +20,9 @@ private:
     Ai* ai = nullptr;
     bool pressed = false;
     bool isNnFocused = true;
-    bool canChangeFocus = false;
-    bool canCenter = false;
+    bool drawViewport = true;
+    bool isFullscreen = false;
+    bool canFullscreen = false;
     sf::RenderWindow window;
 
 	sf::RenderTexture nnSpace;

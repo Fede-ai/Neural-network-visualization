@@ -60,9 +60,6 @@ void Game::play()
     window.setView(sf::View(sf::Vector2f(1920/2, 1080/2), sf::Vector2f(1920, 1080)));
     window.requestFocus();
 
-    bool isFullscreen = false;
-    bool canFullscreen = false;
-
 	while (window.isOpen())
 	{
         pressed = false;
@@ -107,31 +104,21 @@ void Game::play()
                 break;                
             }
             case sf::Event::KeyPressed:
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+				switch (event.key.code)
 				{
-					if (canFullscreen)
-					{
-						if (isFullscreen)
-						{
-                            sf::View view(window.getView());
-							window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2/3, sf::VideoMode::getDesktopMode().width * 3/8), "simple", sf::Style::Default, settings);
-							window.setFramerateLimit(60);
-							window.setView(view);
-						}
-						else
-						{	
-                            sf::View view(window.getView());
-							window.create(sf::VideoMode(), "simple", sf::Style::Fullscreen, settings);
-							window.setFramerateLimit(60);
-							window.setView(view);
-						}
-						isFullscreen = !isFullscreen;
-					}
-					canFullscreen = false;
-				}
-				else
-				{
-					canFullscreen = true;
+				case sf::Keyboard::C:
+					if (isNnFocused)
+						setView();
+					else
+						imageSpace.setView(sf::View(sf::Vector2f(100, 67.5), sf::Vector2f(200, 135)));
+					break;
+				case sf::Keyboard::Space:
+					isNnFocused = !isNnFocused;
+					isMooving = false;
+					break;
+				case sf::Keyboard::H:
+					drawViewport = !drawViewport;
+					break;
 				}
                 break;
             case sf::Event::MouseButtonPressed:
@@ -178,6 +165,35 @@ void Game::update()
         }  
     }
 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+	{
+		if (canFullscreen)
+		{
+			sf::ContextSettings settings;
+			settings.antialiasingLevel = 8;
+			if (isFullscreen)
+			{
+				sf::View view(window.getView());
+				window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width * 2 / 3, sf::VideoMode::getDesktopMode().width * 3 / 8), "simple", sf::Style::Default, settings);
+				window.setFramerateLimit(60);
+				window.setView(view);
+			}
+			else
+			{
+				sf::View view(window.getView());
+				window.create(sf::VideoMode(), "simple", sf::Style::Fullscreen, settings);
+				window.setFramerateLimit(60);
+				window.setView(view);
+			}
+			isFullscreen = !isFullscreen;
+		}
+		canFullscreen = false;
+	}
+	else
+	{
+		canFullscreen = true;
+	}
+
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && isMooving)
     {
 		if (isNnFocused)
@@ -221,7 +237,7 @@ void Game::update()
         			for (int neur = 0; neur < aiSize[layer]; neur++)
         			{
         				if (potentialValue == editingValue)
-                            ai->setWeight(layer - 1, neur, neurBefore, std::min(std::max((mousePos.x - 160) * 1 / 130.f, -1.f), 1.f));
+                            ai->setWeight(layer - 1, neur, neurBefore, std::min(std::max((mousePos.x - 160) * 3 / 130.f, -3.f), 3.f));
 
                         potentialValue++;       
         			}
@@ -246,39 +262,6 @@ void Game::update()
     {
         editingValue = -1;
     } 
-
-	//center
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
-	{
-		if (canCenter)
-		{
-			if (isNnFocused)
-				setView();
-			else
-				imageSpace.setView(sf::View(sf::Vector2f(100, 67.5), sf::Vector2f(200, 135)));
-
-			canCenter = false;
-		}
-	}
-	else
-	{
-		canCenter = true;
-	}
-	
-	//change focus
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-	{
-		if (canChangeFocus)
-		{
-			isNnFocused = !isNnFocused;
-			isMooving = false;
-			canChangeFocus = false;
-		}
-	}
-	else
-	{
-		canChangeFocus = true;
-	}
 	
 	lastMousePos = sf::Mouse::getPosition();
 }
@@ -383,16 +366,16 @@ void Game::drawNn()
 		nnCanvas.setSize(sf::Vector2f(1600, 1080));
 		nnCanvas.setPosition(sf::Vector2f(320, 0));
 		nnCanvas.setOutlineThickness(0);
+		window.draw(nnCanvas);
 	}
-	else
+	else if (drawViewport)
 	{
 		nnCanvas.setSize(sf::Vector2f(400, 270));
 		nnCanvas.setPosition(sf::Vector2f(1520, 810));
 		nnCanvas.setOutlineColor(sf::Color::Black);
-		nnCanvas.setOutlineThickness(10);
+		nnCanvas.setOutlineThickness(6);
+		window.draw(nnCanvas);
 	}
-
-	window.draw(nnCanvas);
 }
 
 void Game::drawImage()
@@ -411,16 +394,16 @@ void Game::drawImage()
 		imageCanvas.setSize(sf::Vector2f(1600, 1080));
 		imageCanvas.setPosition(sf::Vector2f(320, 0));
 		imageCanvas.setOutlineThickness(0);
+		window.draw(imageCanvas);
 	}
-	else
+	else if (drawViewport)
 	{
 		imageCanvas.setSize(sf::Vector2f(400, 270));
 		imageCanvas.setPosition(sf::Vector2f(1520, 810));
 		imageCanvas.setOutlineColor(sf::Color::Black);
-		imageCanvas.setOutlineThickness(10);
+		imageCanvas.setOutlineThickness(6);
+		window.draw(imageCanvas);
 	}
-
-	window.draw(imageCanvas);
 }
 
 void Game::drawSliders()
@@ -458,7 +441,7 @@ void Game::drawSliders()
 				window.draw(sliderBg);
 
                 slider.setPosition(160, 30 + i * 80 + sliderScroll);
-                slider.setSize(sf::Vector2f(130.f / 1 * ai->getWeight(layer - 1, neur, neurBefore), 50));
+                slider.setSize(sf::Vector2f(130.f / 3 * ai->getWeight(layer - 1, neur, neurBefore), 50));
                 window.draw(slider);  
 
                 std::string str("weight(" + std::to_string(layer) + ", " + std::to_string(neurBefore+1) + ", " + std::to_string(neur+1) + "): ");
