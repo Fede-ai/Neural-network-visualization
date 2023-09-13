@@ -11,6 +11,7 @@ The first number of a bias' coordinated indicates the layer of the bias' node (i
 
 ### Info about the image
 By pressing the space button you can toggle the neural network with an image created by feeding the coordinates of each pixel to the neural network.
+Pressing 'H' you can toggle the view port in the bottom-right corner.
 The top left corner of the image corresponds to the coordinates [-5, -5], while the bottom right corner to corresponds to [5, 5].
 
 ### The network's size
