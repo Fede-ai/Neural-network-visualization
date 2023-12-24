@@ -1,7 +1,7 @@
-#include "game.h"
+#include "nn.h"
 #include <iostream>
 
-void Game::play()
+void Nn::run()
 {
     initAi();
     ai->setRandomValues();
@@ -148,7 +148,7 @@ void Game::play()
 	}
 }
 
-void Game::update()
+void Nn::update()
 {
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 	if (pressed)
@@ -266,7 +266,7 @@ void Game::update()
 	lastMousePos = sf::Mouse::getPosition();
 }
 
-void Game::drawNn()
+void Nn::drawNn()
 {
 	if (isNnFocused)
 		nnSpace.clear(sf::Color(200, 200, 200));
@@ -296,7 +296,7 @@ void Game::drawNn()
 		for (int neur = 0; neur < aiSize[layer]; neur++)
 		{
 			if (layer > 0)
-				neuron.setFillColor(sf::Color((1 - ai->getNeuron(layer - 1, neur)) * 255, ai->getNeuron(layer - 1, neur) * 255, 0));
+				neuron.setFillColor(sf::Color((1 - ai->getNode(layer - 1, neur)) * 255, ai->getNode(layer - 1, neur) * 255, 0));
 			else
 				neuron.setFillColor(sf::Color::White);
             
@@ -331,7 +331,7 @@ void Game::drawNn()
 					text.setRotation(0);
 				}
 				//draw neuron text
-				text.setString(std::to_string(ai->getNeuron(layer - 1, neur)));
+				text.setString(std::to_string(ai->getNode(layer - 1, neur)));
 				text.setOrigin(text.getGlobalBounds().width*2, text.getGlobalBounds().height*2);
 				text.setPosition(120 + 300 * layer, (space + 100) * neur + space + 50 - 5);
 				nnSpace.draw(text);
@@ -379,7 +379,7 @@ void Game::drawNn()
 	}
 }
 
-void Game::drawImage()
+void Nn::drawImage()
 {
 	if (!isNnFocused)
 		imageSpace.clear(sf::Color(200, 200, 200));
@@ -408,7 +408,7 @@ void Game::drawImage()
 	}
 }
 
-void Game::drawSliders()
+void Nn::drawSliders()
 {   
     text.setCharacterSize(20);
 	text.setScale(1, 1);
@@ -486,7 +486,7 @@ void Game::drawSliders()
 	text.setScale(0.25, 0.25);
 }
 
-void Game::computeImage()
+void Nn::computeImage()
 {
 	for (int y = 0; y < imageImage.getSize().y; y++)
 	{
@@ -513,7 +513,7 @@ void Game::computeImage()
 	}
 }
 
-void Game::initAi()
+void Nn::initAi()
 {
     aiSize.clear();
     aiSize.push_back(2);
@@ -558,7 +558,7 @@ void Game::initAi()
         }
     } while (cmd != "rgb" && cmd != "bw");
 
-    std::cout << "final network's size: ";
+    std::cout << "\nfinal network's size: ";
     for (int i = 0; i < aiSize.size(); i++)
     {
         std::cout << aiSize[i] << ", ";
@@ -578,7 +578,7 @@ void Game::initAi()
     ai = new Ai(aiSize);
 }
 
-void Game::setView()
+void Nn::setView()
 {
 	float width = 300 * (aiSize.size() - 1) + 240;
 	float prop = 1600 / 1080.f; // = 40 / 27

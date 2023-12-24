@@ -134,13 +134,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\ai.cpp" />
-    <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\bp.cpp" />
+    <ClCompile Include="src\nn.cpp" />
     <ClCompile Include="src\layer.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ai.h" />
-    <ClInclude Include="src\game.h" />
+    <ClInclude Include="src\bp.h" />
+    <ClInclude Include="src\dataPoint.h" />
+    <ClInclude Include="src\nn.h" />
     <ClInclude Include="src\layer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

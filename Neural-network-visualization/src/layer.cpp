@@ -1,74 +1,41 @@
 #include "layer.h"
 #include <random>
 
-Layer::Layer(int sizeBefore, int size)
+Layer::Layer(int inSizeBef, int inSizeAft)
 {
-	for (int a = 0; a < size; a++)
+	sizeAft = inSizeAft;
+	sizeBef = inSizeBef;
+
+	for (int a = 0; a < inSizeAft; a++)
 	{
-		neurons.push_back(0);
+		weightedValues.push_back(0);
+		activatedValues.push_back(0);
 		biases.push_back(0);
+		gradientsBiases.push_back(0);
 
 		std::vector<double> neuronWeights;
-		for (int b = 0; b < sizeBefore; b++)
+		std::vector<double> neuronGradientsWeights;
+		for (int b = 0; b < inSizeBef; b++)
 		{
 			neuronWeights.push_back(0);
+			neuronGradientsWeights.push_back(0);
 		}
 		weights.push_back(neuronWeights);
+		gradientsWeights.push_back(neuronGradientsWeights);
 	}
 	
     std::srand(static_cast<unsigned int>(std::time(nullptr))); 
 }
 
-std::vector<double> Layer::calculateLayer(std::vector<double> neuronsBefore)
-{
-	for (int thisNeuron = 0; thisNeuron < neurons.size(); thisNeuron++)
-	{
-		double value = biases[thisNeuron];
-		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
-		{
-			value += neuronsBefore[neuronBefore] * weights[thisNeuron][neuronBefore];
-		}	
-		neurons[thisNeuron] = activationFunction(value);
-	}
-	return neurons;
-}
-double Layer::activationFunction(double num)
-{
-	return 1 / (1 + exp(-num));
-}
-
-double Layer::getNeuron(int neuron) const
-{
-	return neurons[neuron];
-}
-double Layer::getBias(int neuron) const
-{
-	return biases[neuron];
-}
-double Layer::getWeight(int neuron, int neuronBefore) const
-{
-	return weights[neuron][neuronBefore];
-}
-
-void Layer::setBias(int neuron, double value)
-{
-	biases[neuron] = value;
-}
-void Layer::setWeight(int neuron, int neuronBefore, double value)
-{
-	weights[neuron][neuronBefore] = value;
-}
-
 void Layer::setRandomLayerValues()
 {
-	for (int thisNeuron = 0; thisNeuron < neurons.size(); thisNeuron++)
+	for (int thisNeuron = 0; thisNeuron < activatedValues.size(); thisNeuron++)
 	{
-		biases[thisNeuron] = random(0, 6000) / 1000.f - 3;
-
 		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
 		{
-			weights[thisNeuron][neuronBefore] = random(0, 4000) / 1000.f - 2;
+			weights[thisNeuron][neuronBefore] = (random(0, 2000) / 1000.f - 1);
 		}
+		biases[thisNeuron] = (random(0, 10000) / 1000.f - 5);
 	}
 }
 int Layer::random(int min, int max)
@@ -79,4 +46,98 @@ int Layer::random(int min, int max)
 	//return dist6(rng);
 
 	return (rand() % (max - min + 1)) + min;
+}
+std::vector<double> Layer::calculateLayer(std::vector<double> nodesBef)
+{
+	lastLayerActivatedValues = nodesBef;
+	for (int thisNeuron = 0; thisNeuron < activatedValues.size(); thisNeuron++)
+	{
+		double value = biases[thisNeuron];
+		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
+		{
+			value += nodesBef[neuronBefore] * weights[thisNeuron][neuronBefore];
+		}	
+		weightedValues[thisNeuron] = value;
+		activatedValues[thisNeuron] = activationFunction(value);
+	}
+	return activatedValues;
+}
+
+void Layer::updateGradients(std::vector<double> nodeValuesAft)
+{
+	for (int thisNeuron = 0; thisNeuron < activatedValues.size(); thisNeuron++)
+	{	
+		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
+		{
+			gradientsWeights[thisNeuron][neuronBefore] += lastLayerActivatedValues[neuronBefore] * nodeValuesAft[thisNeuron];
+		}
+		gradientsBiases[thisNeuron] += nodeValuesAft[thisNeuron];
+	}
+}
+void Layer::applyGradients(double learnRate)
+{
+	for (int thisNeuron = 0; thisNeuron < activatedValues.size(); thisNeuron++)
+	{
+		biases[thisNeuron] -= gradientsBiases[thisNeuron] * learnRate;
+		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
+		{
+			weights[thisNeuron][neuronBefore] -= gradientsWeights[thisNeuron][neuronBefore] * learnRate;
+		}	
+	}
+}
+void Layer::clearGradients()
+{
+	for (int thisNeuron = 0; thisNeuron < activatedValues.size(); thisNeuron++)
+	{
+		gradientsBiases[thisNeuron] = 0;
+		for (int neuronBefore = 0; neuronBefore < weights[thisNeuron].size(); neuronBefore++)
+		{
+			gradientsWeights[thisNeuron][neuronBefore] = 0;
+		}
+	}
+}
+
+std::vector<double> Layer::calculateOutputLayerNodeValues(std::vector<double> expectedValue)
+{
+	std::vector<double> nodeValues;
+
+	for (int i = 0; i < expectedValue.size(); i++)
+	{
+		double costToActivated = nodeCostDerivative(activatedValues[i], expectedValue[i]);
+		double activatedToWeighted = activationFunctionDerivative(weightedValues[i]);
+		nodeValues.push_back(costToActivated * activatedToWeighted);
+	}	
+
+	return nodeValues;
+}
+std::vector<double> Layer::calculateHiddenLayerNodeValues(std::vector<double> nodeValuesAft, std::vector<std::vector<double>> weightsAft)
+{
+	std::vector<double> newNodeValues;
+
+	for (int node = 0; node < sizeAft; node++)
+	{
+		double newNodeValue = 0;
+		for (int nodeAfter = 0; nodeAfter < weightsAft.size(); nodeAfter++)
+		{
+			newNodeValue += nodeValuesAft[nodeAfter] * weightsAft[nodeAfter][node];
+		}
+		newNodeValue *= activationFunctionDerivative(weightedValues[node]);
+		newNodeValues.push_back(newNodeValue);
+	}
+
+	return newNodeValues;
+}
+
+double Layer::activationFunction(double weightedValue)
+{
+	return 1 / (1 + exp(-weightedValue));
+}
+double Layer::activationFunctionDerivative(double weightedValue)
+{
+	double activatedValue = activationFunction(weightedValue);
+	return activatedValue * (1 - activatedValue);
+}
+double Layer::nodeCostDerivative(double activatedValue, double expectedValue)
+{
+	return 2 * (activatedValue - expectedValue);
 }

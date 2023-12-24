@@ -2,10 +2,10 @@
 #include <SFML/Graphics.hpp>
 #include "ai.h"
 
-class Game
+class Nn
 {
 public:
-    void play();
+    void run();
 
 private:    
     void update();
